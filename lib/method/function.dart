@@ -26,9 +26,6 @@ class Method {
   // mongodb+srv://Project:z5NNKruQK5qnZ6Gn@cluster0.pydgmcw.mongodb.net/Flutter?retryWrites=true&w=majority&appName=Cluster0//
   static var db, userCollection;
 
-  //UnEmTK5vPoleovFQ
-  static const MONGO_URL ="mongodb+srv://taiduc:UnEmTK5vPoleovFQ@cluster0.goeykdi.mongodb.net/flutter?retryWrites=true&w=majority&appName=Cluster0";
-
   // hàm kết nối với database
   static Future<void> connect(String collectionName) async
   {
@@ -38,13 +35,6 @@ class Method {
     // await db.close();
   }
 
-  // nhấn click vào màn hình để chuyển sang đăng nhập
-  void navigateToSecondScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const DangNhap()),
-    );
-  }
 
   // Hàm thực hiện đăng ký tài khoản
   Future<void> registerWithEmailAndPassword(String email, String password, Users useres) async {
@@ -682,28 +672,6 @@ class Method {
     return sanPhams;
   }
 
-  Future<double> calculateTotalPrice(String collectionName) async {
-    User? user =  _authService.getCurrentUser();
-    String uid = user!.uid;
-    try {
-      await connect(collectionName); // Mở kết nối đến MongoDB
-      var collection = db.collection(collectionName);
-
-      var snapshot = await collection.find(where.eq('uid', uid)).toList();
-      double totalPrice = 0.0;
-
-      for (var item in snapshot) {
-        totalPrice += (item['gia'] as num).toDouble();
-      }
-
-      return totalPrice;
-    } catch (e) {
-      print("Error: $e");
-      return 0.0;
-    } finally {
-      await db.close(); // Đóng kết nối
-    }
-  }
   // Hàm chuyển tất cả ữ liệu từ bảng cart sang bảng bill
   Future<void> moveDataFromCartToBill(String cartCollectionName, String billCollectionName, double tongtien,String phuongthuc, String diachi, String trangThai) async {
     User? user =  _authService.getCurrentUser();
@@ -930,79 +898,7 @@ class Method {
 
     return userList;
   }
-// hàm thực hiện chức năng gửi thông báo
-  void handleMessage(RemoteMessage? message){
-    if(message == null) return;
-    navigatorKey.currentState?.pushNamed
-      (
-      '/notification_screen',
-      arguments: message,
-    );
-  }
 
-  Future<void> handleBackgroundMessage(RemoteMessage message)async{
-    print('Title: ${message.notification?.title}');
-    print('Body: ${message.notification?.body}');
-    print('Payload: ${message.data }');
-  }
-  static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  final _firebaseMessage = FirebaseMessaging.instance;
-  Future<void> initNotifications() async{
-    await _firebaseMessage.requestPermission();
-    final fCMToken = await _firebaseMessage.getToken();
-    print('Token: $fCMToken');
-    initPushNotifications();
-    initLocalNotification();
-  }
-
-  final _androidChannel = const AndroidNotificationChannel(
-    'high_important_channel',
-    'High Important Notification',
-    description: 'This channel is used for important notification ',
-    importance: Importance.defaultImportance,
-  );
-  final _localNotification = FlutterLocalNotificationsPlugin();
-
-  Future initPushNotifications()async{
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert:true,
-      badge: true,
-      sound: true,
-    );
-    FirebaseMessaging.instance.getInitialMessage().then((handleMessage));
-    FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
-    FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
-    FirebaseMessaging.onMessage.listen((message) {
-      final notification = message.notification;
-      if(notification == null) return;
-      _localNotification.show(notification.hashCode, notification.title, notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            _androidChannel.id,
-            _androidChannel.name,
-            channelDescription: _androidChannel.description,
-            icon: '@mipmap/ic_launcher',
-          ),
-        ),
-        payload: jsonEncode(message.toMap()),
-      );
-    });
-  }
-
-  Future initLocalNotification() async{
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const settings = InitializationSettings(android: android);
-    await  _localNotification.initialize(
-        settings,
-        onSelectNotification: (payload){
-          final message = RemoteMessage.fromMap(jsonDecode(payload!));
-          handleMessage(message);
-        }
-    );
-    final platform = _localNotification.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await platform?.createNotificationChannel(_androidChannel);
-
-  }
 
 
 
